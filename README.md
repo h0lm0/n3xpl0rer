@@ -1,4 +1,4 @@
-# n3xpl0rer
+# <img src="assets/n3xpl0rer.png" width="200" alt="n3xpl0rer logo"> 
 
 ## What's this?
 
