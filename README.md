@@ -1,6 +1,6 @@
 # <img src="assets/n3xpl0rer.png" width="200" alt="n3xpl0rer logo"> 
 
-## What's this?
+**What's this?**
 
 n3xpl0rer is a simple tool designed to automate reconnaissance tasks during penetration tests or security assessments.
 
