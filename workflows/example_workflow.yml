@@ -1,0 +1,6 @@
+name: Workflow example
+steps:
+  - init
+  - analyse
+  - validate
+  - finish
