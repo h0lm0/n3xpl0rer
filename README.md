@@ -29,6 +29,7 @@ python n3xpl0rer.py
 
 - Python version
   - concurrent step (property in json that specify if the step can be concurrent or not)
+  - step pause (compleeeex)
 - Nim version
   - python to nim because it's cool but complex
 - Docker it all
