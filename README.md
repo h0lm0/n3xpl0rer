@@ -25,8 +25,7 @@ python n3xpl0rer.py
   - next version: web enum + exploit tasks
 - todo w2.json: windows environment enum tasks (cme + impacket)
 
-
-## Improvements
+## Next improvements
 
 - Python version
   - concurrent step (property in json that specify if the step can be concurrent or not)
