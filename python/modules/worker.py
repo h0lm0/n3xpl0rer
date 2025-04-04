@@ -22,13 +22,14 @@ class Worker:
             result = subprocess.run(command, shell=True, capture_output=True, text=True)
             return result.stdout.strip()
         except KeyboardInterrupt:
-            self.console.print("\n[bold red]Execution interrupted by user (Ctrl+C). What would you like to do next?[/bold red]")
+            self.console.print("\n[bold red]Execution interrupted by user. What would you like to do next?[/bold red]")
             self.state = {'command': original_command, 'local_vars': local_vars}
             self._handle_interrupt()
             return None
 
     def _handle_interrupt(self):
         while True:
+            # need to be fix but way too complex broski :'(
             choice = input("Press 'y' to continue or 'q' to return to the main menu: ").strip().lower()
             if choice == 'y':
                 self.console.print("[bold green]Resuming the task...[/bold green]")
@@ -97,6 +98,7 @@ class Worker:
             if 'ifFail' in step:
                 self.__execute_substeps(step['ifFail'], indent + "↳")
 
+    # degueu indent mais u kno blc
     def __execute_substeps(self, substeps, indent="↳"):
         if isinstance(substeps, list):
             for substep in substeps:
