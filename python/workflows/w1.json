@@ -7,12 +7,12 @@
             "match": "80/open/tcp",
             "ifSuccess": [
                 {
-                    "name": "subdomain",
-                    "command": "echo scanning $HOST for subdomains"
+                    "name": "subdomain enum",
+                    "command": "ffuf -s -u http://$HOSTNAME/ -w ~/wordlists/SecLists-master/Discovery/Web-Content/common.txt -H 'Host:FUZZ.$HOSTNAME' -mc 200"
                 },
                 {
                     "name": "feroxbuster",
-                    "command": "feroxbuster -u http://$host"
+                    "command": "feroxbuster -t 4000 -k --url http://$HOST/ -w ~/wordlists/SecLists-master/Discovery/Web-Content/directory-list-2.3-medium.txt"
                 }
             ]
         }

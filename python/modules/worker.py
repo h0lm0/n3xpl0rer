@@ -6,39 +6,57 @@ class Worker:
     def __init__(self):
         self.console = Console()
         self.global_vars = {}
-
-    def __replace_variables(self, text, local_vars):
-        all_vars = {**self.global_vars, **local_vars}
-        def replacer(match):
-            var_name = match.group(0)[1:]  # remove the $
-            return all_vars.get(var_name, match.group(0))  # keep original if not found
-        return re.sub(r"\$[a-zA-Z_][a-zA-Z0-9_]*", replacer, text)
+        self.state = None
 
     def __execute_command(self, command, local_vars):
-        final_command = self.__replace_variables(command, local_vars)
-        self.console.print(f"[bold white]Running:[/bold white] {final_command}", style="dim")
-        result = subprocess.run(final_command, shell=True, capture_output=True, text=True)
-        return result.stdout.strip()
+        all_vars = {**self.global_vars, **local_vars}
+        original_command = command
 
-    def __match_condition(self, pattern, result, local_vars):
-        if pattern:
-            pattern = self.__replace_variables(pattern, local_vars)
-            return bool(re.search(pattern, result))
-        return False
+        for var in sorted(all_vars.keys(), key=lambda x: -len(x)):
+            value = all_vars[var]
+            command = command.replace(f"${var}", value)
+        
+        self.console.print(f"Command: {command}", style="bold cyan")
+
+        try:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            return result.stdout.strip()
+        except KeyboardInterrupt:
+            self.console.print("\n[bold red]Execution interrupted by user (Ctrl+C). What would you like to do next?[/bold red]")
+            self.state = {'command': original_command, 'local_vars': local_vars}
+            self._handle_interrupt()
+            return None
+
+    def _handle_interrupt(self):
+        while True:
+            choice = input("Press 'y' to continue or 'q' to return to the main menu: ").strip().lower()
+            if choice == 'y':
+                self.console.print("[bold green]Resuming the task...[/bold green]")
+                return
+            elif choice == 'q':
+                self.console.print("[bold red]Returning to the main menu...[/bold red]")
+                raise KeyboardInterrupt
+            else:
+                self.console.print("[bold yellow]Invalid choice. Please press 'y' to continue or 'q' to return to the main menu.[/bold yellow]")
+
+    def __match_condition(self, pattern, result):
+        return bool(re.search(pattern, result))
 
     def process_workflow(self, workflow):
         self.__collect_global_variables(workflow)
         for step in workflow['steps']:
-            self.__execute_step(step)
+            try:
+                self.__execute_step(step)
+            except KeyboardInterrupt:
+                self.console.print("[bold red]Workflow execution interrupted.[/bold red]")
 
     def __collect_global_variables(self, workflow):
-        all_commands = []
+        all_commands = [step['command'] for step in workflow['steps']]
         for step in workflow['steps']:
-            all_commands.append(step.get('command', ''))
             for block in ['ifSuccess', 'ifFail']:
                 if block in step:
                     substeps = step[block] if isinstance(step[block], list) else [step[block]]
-                    all_commands.extend([s.get('command', '') for s in substeps])
+                    all_commands.extend([s['command'] for s in substeps])
 
         variables = set(re.findall(r"\$[A-Z][A-Z0-9_]*", " ".join(all_commands)))
         for var in variables:
@@ -51,30 +69,37 @@ class Worker:
         local_vars = {}
         for var in matches:
             var_name = var[1:]
-            if var_name not in local_vars:
-                value = input(f"Enter a value for local variable {var}: ")
-                local_vars[var_name] = value
+            value = input(f"Enter a value for local variable {var}: ")
+            local_vars[var_name] = value
         return local_vars
 
-    def __execute_step(self, step):
-        self.console.print(f"\n[bold yellow]Executing step:[/bold yellow] {step['name']}")
+    def __execute_step(self, step, indent=""):
+        self.console.print(f"{indent}Executing step: {step['name']}", style="bold yellow")
 
         local_vars = self.__extract_local_variables(step['command'])
         result = self.__execute_command(step['command'], local_vars)
-        self.console.print(f"[italic]Result:[/italic] {result}")
+        if result is None:
+            return
 
-        if self.__match_condition(step.get('match', ''), result, local_vars):
-            self.console.print(f"[✔] Condition met for step: {step['name']}", style="bold green")
-            if 'ifSuccess' in step:
-                self.__execute_substeps(step['ifSuccess'])
+        self.console.print(f"{indent}Result: {result}", style="italic")
+
+        if 'match' in step:
+            if self.__match_condition(step['match'], result):
+                self.console.print(f"{indent}[✔] Condition met for step: {step['name']}", style="bold green")
+                if 'ifSuccess' in step:
+                    self.__execute_substeps(step['ifSuccess'], indent + "↳")
+            else:
+                self.console.print(f"{indent}[✘] Condition failed for step: {step['name']}", style="bold red")
+                if 'ifFail' in step:
+                    self.__execute_substeps(step['ifFail'], indent + "↳")
         else:
-            self.console.print(f"[✘] Condition failed for step: {step['name']}", style="bold red")
+            self.console.print(f"{indent}No match condition for step: {step['name']}.", style="dim")
             if 'ifFail' in step:
-                self.__execute_substeps(step['ifFail'])
+                self.__execute_substeps(step['ifFail'], indent + "↳")
 
-    def __execute_substeps(self, substeps):
+    def __execute_substeps(self, substeps, indent="↳"):
         if isinstance(substeps, list):
             for substep in substeps:
-                self.__execute_step(substep)
+                self.__execute_step(substep, indent)
         elif isinstance(substeps, dict):
-            self.__execute_step(substeps)
+            self.__execute_step(substeps, indent)
