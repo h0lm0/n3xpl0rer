@@ -15,6 +15,7 @@ wip, bientôt
 Create your workflows in `workflows` folder.
 
 ```bash
+cd python
 python n3xpl0rer.py
 ```
 

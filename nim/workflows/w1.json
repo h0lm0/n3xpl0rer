@@ -1,0 +1,20 @@
+{
+    "name": "Pentest Workflow",
+    "steps": [
+        {
+            "name": "web Scan",
+            "command": "nmap -p 80,443 -oG - $HOST",
+            "match": "80/open/tcp",
+            "ifSuccess": [
+                {
+                    "name": "subdomain enum",
+                    "command": "ffuf -s -u http://$HOSTNAME/ -w ~/wordlists/SecLists-master/Discovery/Web-Content/common.txt -H 'Host:FUZZ.$HOSTNAME' -mc 200"
+                },
+                {
+                    "name": "feroxbuster",
+                    "command": "feroxbuster -t 4000 -k --url http://$HOST/ -w ~/wordlists/SecLists-master/Discovery/Web-Content/directory-list-2.3-medium.txt"
+                }
+            ]
+        }
+    ]
+}
