@@ -1,0 +1,36 @@
+{
+    "name": "Pentest Workflow",
+    "steps": [
+        {
+            "name": "Nmap Scan",
+            "command": "nmap -p 80,443 --open -oG - $host",
+            "match": "80/open",
+            "ifSuccess": {
+                "name": "Dirbuster",
+                "command": "dirb http://$host"
+            },
+            "ifFail": {
+                "name": "Nmap Full Scan",
+                "command": "nmap -p- $host"
+            }
+        },
+        {
+            "name": "Dirbuster",
+            "command": "dirb http://$host",
+            "match": "\\[200\\]",
+            "ifSuccess": {
+                "name": "Check for Admin Panel",
+                "command": "curl -s http://$host/admin"
+            }
+        },
+        {
+            "name": "Check for Admin Panel",
+            "command": "curl -s http://$host/admin",
+            "match": "Admin Login",
+            "ifSuccess": {
+                "name": "Brute Force Admin",
+                "command": "hydra -l admin -P passwords.txt http-post-form \"/admin:username=^USER^&password=^PASS^:F=incorrect\""
+            }
+        }
+    ]
+}

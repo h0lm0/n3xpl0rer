@@ -1,0 +1,20 @@
+{
+    "name": "Pentest Workflow",
+    "steps": [
+        {
+            "name": "web Scan",
+            "command": "nmap -p 80,443 --open -oG - $host",
+            "match": "80/tcp open",
+            "ifSuccess": [
+                {
+                    "name": "subdomain",
+                    "command": "echo 'not implemented'"
+                },
+                {
+                    "name": "feroxbuster",
+                    "command": "echo 'not implemented'"
+                }
+            ]
+        }
+    ]
+}

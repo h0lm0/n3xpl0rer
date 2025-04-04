@@ -1,16 +1,9 @@
 import terminal, strutils
 import modules/workflower
-
-proc recon() =
-  setForegroundColor(fgGreen)
-  echo "Recon: Not implemented"
-  resetAttributes()
-  echo "Press Enter to continue..."
-  discard readLine(stdin)
+import modules/worker
 
 proc showMenu() =
   while true:
-    eraseScreen(stdout)
     setForegroundColor(fgCyan)
     echo "============================="
     echo "          n3xpl0rer          "
@@ -18,7 +11,8 @@ proc showMenu() =
     resetAttributes()
     echo "[1] Recon"
     echo "[2] Load a Workflow"
-    echo "[3] Exit"
+    echo "[3] Run a Workflow"
+    echo "[4] Exit"
     setForegroundColor(fgCyan)
     echo "============================="
     resetAttributes()
@@ -27,11 +21,11 @@ proc showMenu() =
 
     case choice
     of "1":
-      recon()
+      echo "Recon: Not implemented"
     of "2":
-      stdout.write("Enter the YAML file name in the 'workflows' folder: ")
+      stdout.write("Enter the JSON file name in the 'workflows' folder: ")
       let filename = readLine(stdin).strip()
-      let filepath = "workflows/" & filename
+      let filepath = "../workflows/" & filename
       try:
         let workflow = workflower.loadWorkflow(filepath)
         workflower.displayWorkflow(workflow)
@@ -42,6 +36,21 @@ proc showMenu() =
       echo "Press Enter to continue..."
       discard readLine(stdin)
     of "3":
+      stdout.write("Enter the JSON file name in the 'workflows' folder: ")
+      let filename = readLine(stdin).strip()
+      let filepath = "../workflows/" & filename
+      stdout.write("Enter the target host: ")
+      let host = readLine(stdin).strip()
+      try:
+        let workflow = workflower.loadWorkflow(filepath)
+        worker.runWorkflow(workflow, host)
+      except CatchableError as e:
+        setForegroundColor(fgRed)
+        echo "Error executing the workflow: ", e.msg
+        resetAttributes()
+      echo "Press Enter to continue..."
+      discard readLine(stdin)
+    of "4":
       setForegroundColor(fgYellow)
       echo "Exiting..."
       resetAttributes()
