@@ -3,15 +3,25 @@ from rich.prompt import Prompt
 from modules.workflower import Workflower
 from modules.worker import Worker
 
-class N3xpl0rer:
+class n3xpl0rer:
     def __init__(self):
         self.console = Console()
         self.menu_options = ["Display Workflow", "Run Workflow", "Exit"]
 
     def display_menu(self):
-        self.console.print("n3xpl0rer", style="bold green")
+        ascii_art = r"""
+[bold green]
+
+👾 n̲3̲x̲p̲l̲0̲r̲e̲r̲ 👾
+
+[/bold green]
+        """
+        self.console.print(ascii_art)
+
         for idx, option in enumerate(self.menu_options, start=1):
-            self.console.print(f"{idx}. {option}")
+            self.console.print(f"[bold cyan]{idx}[/bold cyan]. {option}")
+        self.console.print("\n" + "=" * 40)
+
 
     def run(self):
         while True:
@@ -27,15 +37,9 @@ class N3xpl0rer:
                 break
 
     def display_workflow(self):
-      try:
         workflow_path = input("Enter the path to the workflow JSON file: ")
         workflower = Workflower(workflow_path)
-        workflow = workflower.load_workflow()
-        self.console.print(f"Workflow Name: {workflow['name']}", style="bold blue")
-        for step in workflow['steps']:
-            self.console.print(f"- {step['name']}", style="bold yellow")
-      except FileNotFoundError as e:
-        self.console.print(f"Workflow {workflow_path} not found", style="red")
+        workflower.display_workflow()
 
     def run_workflow(self):
       try:
@@ -49,5 +53,5 @@ class N3xpl0rer:
         self.console.print(f"Workflow {workflow_path} not found", style="red")
 
 if __name__ == "__main__":
-    app = N3xpl0rer()
+    app = n3xpl0rer()
     app.run()

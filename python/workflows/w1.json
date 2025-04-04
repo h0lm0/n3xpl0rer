@@ -3,16 +3,16 @@
     "steps": [
         {
             "name": "web Scan",
-            "command": "nmap -p 80,443 --open -oG - $host",
-            "match": "80/tcp open",
+            "command": "nmap -p 80,443 -oG - $HOST",
+            "match": "80/open/tcp",
             "ifSuccess": [
                 {
                     "name": "subdomain",
-                    "command": "echo 'not implemented'"
+                    "command": "echo scanning $HOST for subdomains"
                 },
                 {
                     "name": "feroxbuster",
-                    "command": "echo 'not implemented'"
+                    "command": "feroxbuster -u http://$host"
                 }
             ]
         }
